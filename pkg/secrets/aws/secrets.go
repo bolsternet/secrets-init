@@ -45,7 +45,7 @@ func NewAwsSecretsProvider() (secrets.Provider, error) {
 
 // ResolveSecrets replaces all passed variables values prefixed with 'aws:aws:secretsmanager' and 'arn:aws:ssm:REGION:ACCOUNT:parameter'
 // by corresponding secrets from AWS Secret Manager and AWS Parameter Store
-func (sp *SecretsProvider) ResolveSecrets(_ context.Context, vars []string) ([]string, error) { //nolint:gocognit
+func (sp *SecretsProvider) ResolveSecrets(_ context.Context, rawValues map[string]string, vars []string) ([]string, error) { //nolint:gocognit
 	envs := make([]string, 0, len(vars))
 
 	for _, env := range vars {
@@ -57,7 +57,8 @@ func (sp *SecretsProvider) ResolveSecrets(_ context.Context, vars []string) ([]s
 			if err != nil {
 				return vars, errors.Wrap(err, "failed to get secret from AWS Secrets Manager")
 			}
-			if IsJSON(secret.SecretString) {
+
+			if _, isRawKey := rawValues[key]; !isRawKey && IsJSON(secret.SecretString) {
 				var keyValueSecret map[string]string
 				err = json.Unmarshal([]byte(*secret.SecretString), &keyValueSecret)
 				if err != nil {

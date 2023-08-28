@@ -3,22 +3,20 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
+	"github.com/urfave/cli"
+	"golang.org/x/sys/unix" //nolint:gci
 	"io"
 	"os"
 	"os/exec"
 	"os/signal"
 	"path/filepath"
 	"runtime"
-	"syscall"
-
 	"secrets-init/pkg/secrets" //nolint:gci
 	"secrets-init/pkg/secrets/aws"
 	"secrets-init/pkg/secrets/google"
-
-	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
-	"github.com/urfave/cli/v2"
-	"golang.org/x/sys/unix" //nolint:gci
+	"syscall"
 )
 
 var (
@@ -39,18 +37,22 @@ func main() {
 		Before: setLogFormatter,
 		Flags: []cli.Flag{
 			&cli.StringFlag{
-				Name:    "log-format, l",
-				Usage:   "select logrus formatter ['json', 'text']",
-				Value:   "text",
-				EnvVars: []string{"LOG_FORMAT"},
+				Name:   "log-format, l",
+				Usage:  "select logrus formatter ['json', 'text']",
+				Value:  "text",
+				EnvVar: "LOG_FORMAT",
 			},
 			&cli.StringFlag{
 				Name:  "provider, p",
 				Usage: "supported secrets manager provider ['aws', 'google']",
 				Value: "aws",
 			},
+			&cli.StringSliceFlag{
+				Name:  "raw, r",
+				Usage: "extract secret as raw value (eg. don't unpack json values)",
+			},
 		},
-		Commands: []*cli.Command{
+		Commands: []cli.Command{
 			{
 				Name:      "copy",
 				Aliases:   []string{"cp"},
@@ -80,7 +82,7 @@ func main() {
 }
 
 func copyCmd(c *cli.Context) error {
-	if c.Args().Len() != 1 {
+	if len(c.Args()) != 1 {
 		return errors.New("must specify copy destination")
 	}
 	// full path of current executable
@@ -125,7 +127,15 @@ func mainCmd(c *cli.Context) error {
 
 	// get provider
 	var provider secrets.Provider
+	var rawValues map[string]string
 	var err error
+
+	rawValues = make(map[string]string)
+
+	for i := 0; i < len(c.StringSlice("raw")); i++ {
+		rawValues[c.StringSlice("raw")[i]] = c.StringSlice("raw")[i]
+	}
+
 	if c.String("provider") == "aws" {
 		provider, err = aws.NewAwsSecretsProvider()
 	} else if c.String("provider") == "google" {
@@ -137,7 +147,7 @@ func mainCmd(c *cli.Context) error {
 
 	// Launch main command
 	var childPid int
-	childPid, err = run(ctx, provider, c.Args().Slice())
+	childPid, err = run(ctx, provider, rawValues, c.Args())
 	if err != nil {
 		log.WithError(err).Error("failed to run")
 		os.Exit(1)
@@ -177,7 +187,7 @@ func removeZombies(childPid int) {
 }
 
 // run passed command
-func run(ctx context.Context, provider secrets.Provider, commandSlice []string) (childPid int, err error) {
+func run(ctx context.Context, provider secrets.Provider, rawValues map[string]string, commandSlice []string) (childPid int, err error) {
 	var commandStr string
 	var argsSlice []string
 
@@ -206,7 +216,7 @@ func run(ctx context.Context, provider secrets.Provider, commandSlice []string) 
 
 	// set environment variables
 	if provider != nil {
-		cmd.Env, err = provider.ResolveSecrets(ctx, os.Environ())
+		cmd.Env, err = provider.ResolveSecrets(ctx, rawValues, os.Environ())
 		if err != nil {
 			log.WithError(err).Error("failed to resolve secrets")
 		}
