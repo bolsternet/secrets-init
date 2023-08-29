@@ -48,10 +48,6 @@ func main() {
 				Usage: "supported secrets manager provider ['aws', 'google']",
 				Value: "aws",
 			},
-			&cli.StringSliceFlag{
-				Name:  "raw, r",
-				Usage: "extract secret as raw value (eg. don't unpack json values)",
-			},
 		},
 		Commands: []cli.Command{
 			{
@@ -217,7 +213,7 @@ func run(ctx context.Context, provider secrets.Provider, rawValues map[string]st
 
 	// set environment variables
 	if provider != nil {
-		cmd.Env, err = provider.ResolveSecrets(ctx, rawValues, os.Environ())
+		cmd.Env, err = provider.ResolveSecrets(ctx, os.Environ())
 		if err != nil {
 			log.WithError(err).Error("failed to resolve secrets")
 		}

@@ -33,7 +33,7 @@ func NewGoogleSecretsProvider(ctx context.Context) (secrets.Provider, error) {
 //
 //	`gcp:secretmanager:projects/{PROJECT_ID}/secrets/{SECRET_NAME}`
 //	`gcp:secretmanager:projects/{PROJECT_ID}/secrets/{SECRET_NAME}/versions/{VERSION|latest}`
-func (sp SecretsProvider) ResolveSecrets(ctx context.Context, rawValues map[string]string, vars []string) ([]string, error) {
+func (sp SecretsProvider) ResolveSecrets(ctx context.Context, vars []string) ([]string, error) {
 	envs := make([]string, 0, len(vars))
 	for _, env := range vars {
 		kv := strings.Split(env, "=")

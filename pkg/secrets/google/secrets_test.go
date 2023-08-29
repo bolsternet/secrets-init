@@ -154,8 +154,7 @@ func TestSecretsProvider_ResolveSecrets(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			mockSM := &mocks.GoogleSecretsManagerAPI{}
 			sp := tt.mockServiceProvider(tt.args.ctx, mockSM)
-			rawValue := make(map[string]string)
-			got, err := sp.ResolveSecrets(tt.args.ctx, rawValue, tt.args.vars)
+			got, err := sp.ResolveSecrets(tt.args.ctx, tt.args.vars)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("SecretsProvider.ResolveSecrets() error = %v, wantErr %v", err, tt.wantErr)
 				return
