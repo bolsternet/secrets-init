@@ -8,7 +8,8 @@ require (
 	github.com/googleapis/gax-go/v2 v2.6.0
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.9.0
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.8.4
+	github.com/urfave/cli v1.22.14
 	github.com/urfave/cli/v2 v2.23.0
 	golang.org/x/sys v0.1.0
 	google.golang.org/genproto v0.0.0-20221010155953-15ba04fc1c0e
