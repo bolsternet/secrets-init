@@ -55,14 +55,12 @@ func (sp *SecretsProvider) ResolveSecrets(_ context.Context, vars []string) ([]s
 		if isRawValue {
 			value = value[4:]
 		}
-
 		if strings.HasPrefix(value, "arn:aws:secretsmanager") {
 			// get secret value
 			secret, err := sp.sm.GetSecretValue(&secretsmanager.GetSecretValueInput{SecretId: &value})
 			if err != nil {
 				return vars, errors.Wrap(err, "failed to get secret from AWS Secrets Manager")
 			}
-
 			if !isRawValue && IsJSON(secret.SecretString) {
 				var keyValueSecret map[string]string
 				err = json.Unmarshal([]byte(*secret.SecretString), &keyValueSecret)
