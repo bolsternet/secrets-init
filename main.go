@@ -3,20 +3,21 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
-	"github.com/urfave/cli"
-	"golang.org/x/sys/unix" //nolint:gci
 	"io"
 	"os"
 	"os/exec"
 	"os/signal"
 	"path/filepath"
 	"runtime"
-	"secrets-init/pkg/secrets" //nolint:gci
+	"secrets-init/pkg/secrets" //nolint
 	"secrets-init/pkg/secrets/aws"
 	"secrets-init/pkg/secrets/google"
 	"syscall"
+
+	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
+	"github.com/urfave/cli"
+	"golang.org/x/sys/unix" //nolint
 )
 
 var (
