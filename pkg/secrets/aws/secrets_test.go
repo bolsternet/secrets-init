@@ -170,8 +170,7 @@ func TestSecretsProvider_ResolveSecrets(t *testing.T) {
 			mockSM := &mocks.SecretsManagerAPI{}
 			mockSSM := &mocks.SSMAPI{}
 			sp := tt.mockServiceProvider(mockSM, mockSSM)
-			rawValue := make(map[string]string)
-			got, err := sp.ResolveSecrets(context.TODO(), rawValue, tt.vars)
+			got, err := sp.ResolveSecrets(context.TODO(), tt.vars)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("SecretsProvider.ResolveSecrets() error = %v, wantErr %v", err, tt.wantErr)
 				return
